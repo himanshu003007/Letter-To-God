@@ -1,11 +1,9 @@
-# Letter-To-God
-"Letter to God" is a unique platform created to help people find peace, spiritual relief, and expression through devotion. The purpose of this website is to provide a simple and heartfelt space where users can share their wishes, sorrows, hopes, or questions with God or a higher divine power.
 <!DOCTYPE html>
-<html lang="gu">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ભગવાનને કહો – મનની વાત</title>
+    <title>Letter to God – Share Your Thoughts</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -24,7 +22,7 @@
             margin-top: 50px;
         }
 
-        input[type="text"] {
+        input[type="text"], textarea {
             padding: 15px;
             font-size: 16px;
             width: 80%;
@@ -47,7 +45,7 @@
             background-color: #6a0dad;
         }
 
-        .message {
+        .message, .response {
             margin-top: 30px;
             background-color: #fff;
             padding: 20px;
@@ -55,15 +53,6 @@
             border-radius: 5px;
             width: 80%;
             margin: 20px auto;
-            display: none;
-        }
-
-        .response {
-            background-color: #f8f8ff;
-            padding: 10px;
-            border-radius: 5px;
-            margin-top: 20px;
-            display: none;
         }
 
         .footer {
@@ -74,20 +63,22 @@
 </head>
 <body>
 
-    <h1>ભગવાનને કહો – મનની વાત</h1>
+    <h1>Letter to God – Speak Your Heart</h1>
 
     <div class="container">
-        <p>તમારી લાગણી, પ્રશ્ન કે વાત લખો અને "ભગવાન" પાસેથી જવાબ મેળવો.</p>
+        <p>Write your thoughts, questions, or prayers below.</p>
 
-        <input type="text" id="userMessage" placeholder="તમારી વાત લખો..." />
+        <input type="text" id="userMessage" placeholder="Type your message here..." />
         <br />
-        <button onclick="submitMessage()">મારા પત્ર મોકલો</button>
+        <button onclick="submitMessage()">Send Message</button>
 
-        <div class="message" id="userMessageBox"></div>
-        
-        <div class="response" id="godResponseBox">
-            <h3>ભગવાનનો જવાબ:</h3>
-            <p id="godResponse"></p>
+        <div class="message" id="userMessageBox" style="display:none;"></div>
+
+        <div class="response" id="manualReplyBox" style="display:none;">
+            <h3>Your Reply as Admin:</h3>
+            <textarea id="adminReply" placeholder="Type your reply here..."></textarea><br />
+            <button onclick="submitReply()">Submit Reply</button>
+            <div id="finalReply" style="margin-top:20px; font-weight:bold;"></div>
         </div>
     </div>
 
@@ -99,36 +90,27 @@
         function submitMessage() {
             let userMessage = document.getElementById("userMessage").value;
             let messageBox = document.getElementById("userMessageBox");
-            let responseBox = document.getElementById("godResponseBox");
+            let replyBox = document.getElementById("manualReplyBox");
 
-            // Display user's message
             if (userMessage.trim() != "") {
                 messageBox.style.display = "block";
-                messageBox.innerHTML = "<strong>તમારી લખેલી વાત:</strong><br>" + userMessage;
-                
-                // Provide a spiritual response
-                let godResponse = getGodResponse(userMessage);
-                document.getElementById("godResponse").innerHTML = godResponse;
-                responseBox.style.display = "block";
-
-                // Clear the input field
+                replyBox.style.display = "block";
+                messageBox.innerHTML = "<strong>User wrote:</strong><br>" + userMessage;
                 document.getElementById("userMessage").value = "";
+                document.getElementById("adminReply").value = "";
+                document.getElementById("finalReply").innerHTML = "";
             } else {
-                alert("કૃપા કરીને કંઈક લખો!");
+                alert("Please enter a message.");
             }
         }
 
-        function getGodResponse(userMessage) {
-            // Simple predefined responses (you can extend it)
-            const responses = [
-                "ભગવાન કહે છે: 'તમારા મનની શાંતિ અને આનંદ માટે, હું હંમેશાં તમારી સાથે છું.'",
-                "ભગવાન કહે છે: 'મારા વિશ્વાસ પર ચાલો, અને બધા પ્રશ્નોનો જવાબ मिलेगा.'",
-                "ભગવાન કહે છે: 'તમારી મુશ્કેલીઓ સમાપ્ત થશે, આત્મવિશ્વાસ રાખો.'",
-                "ભગવાન કહે છે: 'જ્યારે તમારે લાગણીમાંથી રાહત મળશે, ત્યારે હું તમારી તરફથી હંમેશાં સહારો આપું છું.'"
-            ];
-
-            // Simple random response logic
-            return responses[Math.floor(Math.random() * responses.length)];
+        function submitReply() {
+            let reply = document.getElementById("adminReply").value;
+            if (reply.trim() != "") {
+                document.getElementById("finalReply").innerHTML = "Reply: " + reply;
+            } else {
+                alert("Please write a reply.");
+            }
         }
     </script>
 
