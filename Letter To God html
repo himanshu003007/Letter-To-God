@@ -1,0 +1,136 @@
+# Letter-To-God
+"Letter to God" is a unique platform created to help people find peace, spiritual relief, and expression through devotion. The purpose of this website is to provide a simple and heartfelt space where users can share their wishes, sorrows, hopes, or questions with God or a higher divine power.
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ભગવાનને કહો – મનની વાત</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        h1 {
+            color: #4b0082;
+        }
+
+        .container {
+            margin-top: 50px;
+        }
+
+        input[type="text"] {
+            padding: 15px;
+            font-size: 16px;
+            width: 80%;
+            border: 2px solid #4b0082;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4b0082;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #6a0dad;
+        }
+
+        .message {
+            margin-top: 30px;
+            background-color: #fff;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 80%;
+            margin: 20px auto;
+            display: none;
+        }
+
+        .response {
+            background-color: #f8f8ff;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .footer {
+            margin-top: 50px;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>ભગવાનને કહો – મનની વાત</h1>
+
+    <div class="container">
+        <p>તમારી લાગણી, પ્રશ્ન કે વાત લખો અને "ભગવાન" પાસેથી જવાબ મેળવો.</p>
+
+        <input type="text" id="userMessage" placeholder="તમારી વાત લખો..." />
+        <br />
+        <button onclick="submitMessage()">મારા પત્ર મોકલો</button>
+
+        <div class="message" id="userMessageBox"></div>
+        
+        <div class="response" id="godResponseBox">
+            <h3>ભગવાનનો જવાબ:</h3>
+            <p id="godResponse"></p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>© 2025 All Rights Reserved</p>
+    </div>
+
+    <script>
+        function submitMessage() {
+            let userMessage = document.getElementById("userMessage").value;
+            let messageBox = document.getElementById("userMessageBox");
+            let responseBox = document.getElementById("godResponseBox");
+
+            // Display user's message
+            if (userMessage.trim() != "") {
+                messageBox.style.display = "block";
+                messageBox.innerHTML = "<strong>તમારી લખેલી વાત:</strong><br>" + userMessage;
+                
+                // Provide a spiritual response
+                let godResponse = getGodResponse(userMessage);
+                document.getElementById("godResponse").innerHTML = godResponse;
+                responseBox.style.display = "block";
+
+                // Clear the input field
+                document.getElementById("userMessage").value = "";
+            } else {
+                alert("કૃપા કરીને કંઈક લખો!");
+            }
+        }
+
+        function getGodResponse(userMessage) {
+            // Simple predefined responses (you can extend it)
+            const responses = [
+                "ભગવાન કહે છે: 'તમારા મનની શાંતિ અને આનંદ માટે, હું હંમેશાં તમારી સાથે છું.'",
+                "ભગવાન કહે છે: 'મારા વિશ્વાસ પર ચાલો, અને બધા પ્રશ્નોનો જવાબ मिलेगा.'",
+                "ભગવાન કહે છે: 'તમારી મુશ્કેલીઓ સમાપ્ત થશે, આત્મવિશ્વાસ રાખો.'",
+                "ભગવાન કહે છે: 'જ્યારે તમારે લાગણીમાંથી રાહત મળશે, ત્યારે હું તમારી તરફથી હંમેશાં સહારો આપું છું.'"
+            ];
+
+            // Simple random response logic
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+    </script>
+
+</body>
+</html>
