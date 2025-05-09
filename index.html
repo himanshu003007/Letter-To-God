@@ -56,11 +56,13 @@
 <body>
     <h1>Private Chat</h1>
     <div id="login-container">
-        <h2>Create Account or Sign In</h2>
-        <input type="email" id="email" placeholder="Enter your email" />
-        <input type="password" id="password" placeholder="Enter your password" />
-        <button onclick="signUp()">Sign Up</button>
-        <button onclick="signIn()">Sign In</button>
+        <h2>Sign In with Phone or Google</h2>
+        <!-- Phone Number Login -->
+        <input type="text" id="phone-number" placeholder="Enter your phone number" />
+        <button onclick="phoneSignIn()">Sign In with Phone</button>
+
+        <!-- Google Login -->
+        <button onclick="googleSignIn()">Sign In with Google</button>
     </div>
 
     <div id="chat-container">
@@ -81,7 +83,7 @@
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
+        import { getAuth, signInWithPhoneNumber, RecaptchaVerifier, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
         import { getDatabase, ref, set, get, push, onValue } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
 
         const firebaseConfig = {
@@ -101,31 +103,40 @@
 
         let currentGroupName = "";
 
-        function signUp() {
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
+        // Phone Sign In
+        function phoneSignIn() {
+            const phoneNumber = document.getElementById("phone-number").value;
+            const appVerifier = new RecaptchaVerifier('login-container', {
+                size: 'invisible',
+                callback: (response) => {
+                    // reCAPTCHA solved - will proceed with phone sign-in
+                }
+            }, auth);
 
-            createUserWithEmailAndPassword(auth, email, password)
+            signInWithPhoneNumber(auth, phoneNumber, appVerifier)
+                .then((confirmationResult) => {
+                    const code = prompt("Enter the verification code received via SMS");
+                    return confirmationResult.confirm(code);
+                })
                 .then((userCredential) => {
                     document.getElementById("login-container").style.display = 'none';
                     document.getElementById("chat-container").style.display = 'block';
                 })
                 .catch((error) => {
-                    alert('Error signing up: ' + error.message);
+                    alert('Error signing in with phone: ' + error.message);
                 });
         }
 
-        function signIn() {
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
-
-            signInWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
+        // Google Sign In
+        function googleSignIn() {
+            const provider = new GoogleAuthProvider();
+            signInWithPopup(auth, provider)
+                .then((result) => {
                     document.getElementById("login-container").style.display = 'none';
                     document.getElementById("chat-container").style.display = 'block';
                 })
                 .catch((error) => {
-                    alert('Error signing in: ' + error.message);
+                    alert('Error signing in with Google: ' + error.message);
                 });
         }
 
