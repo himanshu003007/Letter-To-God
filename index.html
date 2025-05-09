@@ -12,103 +12,109 @@
         margin: 0;
         padding: 0;
         text-align: center;
-    }
+    }h1 {
+    color: #4b0082;
+}
 
-    h1 {
-        color: #4b0082;
-    }
+.container, .message, .response, .footer {
+    display: none;
+}
 
-    .container, .message, .response, .footer {
-        display: none;
-    }
+input[type="text"], textarea {
+    padding: 15px;
+    font-size: 16px;
+    width: 80%;
+    border: 2px solid #4b0082;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
 
-    input[type="text"], textarea {
-        padding: 15px;
-        font-size: 16px;
-        width: 80%;
-        border: 2px solid #4b0082;
-        border-radius: 5px;
-        margin-bottom: 20px;
-    }
+button {
+    padding: 10px 20px;
+    background-color: #4b0082;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 18px;
+    cursor: pointer;
+}
 
-    button {
-        padding: 10px 20px;
-        background-color: #4b0082;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        font-size: 18px;
-        cursor: pointer;
-    }
+button:hover {
+    background-color: #6a0dad;
+}
 
-    button:hover {
-        background-color: #6a0dad;
-    }
+#loginPopup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to right, #8360c3, #2ebf91);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
 
-    #loginPopup {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(to right, #8360c3, #2ebf91);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-    }
+#loginBox {
+    background-color: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    width: 320px;
+    text-align: center;
+    animation: fadeIn 0.6s ease;
+}
 
-    #loginBox {
-        background-color: white;
-        padding: 40px;
-        border-radius: 12px;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-        width: 320px;
-        text-align: center;
-        animation: fadeIn 0.6s ease;
-    }
+#loginBox h2 {
+    margin-bottom: 20px;
+    color: #4b0082;
+}
 
-    #loginBox h2 {
-        margin-bottom: 20px;
-        color: #4b0082;
-    }
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
 
-    @keyframes fadeIn {
-        from { opacity: 0; transform: scale(0.95); }
-        to { opacity: 1; transform: scale(1); }
-    }
+.comment-section {
+    margin-top: 20px;
+}
+.comment-box {
+    width: 80%;
+    margin: 10px auto;
+    text-align: left;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+    background: #fff;
+}
 </style>
 
 </head>
-<body><div id="loginPopup">
+<body>
+<div id="loginPopup">
     <div id="loginBox">
         <h2>Please sign in with Google</h2>
         <button onclick="signInWithGoogle()">Sign in with Google</button>
     </div>
-</div>
-
-<h1>Letter to God – Speak Your Heart</h1>
-
-<div class="container">
+</div><h1>Letter to God – Speak Your Heart</h1><div class="container">
     <p>Write your thoughts, questions, or prayers below.</p>
+    <input type="text" id="userName" placeholder="Your Name (required)" required />
     <input type="text" id="userMessage" placeholder="Type your message here..." />
     <br />
     <button onclick="submitMessage()">Send Message</button>
     <div class="message" id="userMessageBox"></div>
-</div>
-
-<div class="footer">
+</div><div class="footer">
     <p>© 2025 All Rights Reserved</p>
-</div>
-
-<!-- Firebase SDKs -->
-<script type="module">
+</div><!-- Firebase SDKs --><script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
+    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyBlo85PsKPD1lB1bVJgwL6sm8bp7K-9OG0",
         authDomain: "letter-to-god-9abe1.firebaseapp.com",
+        databaseURL: "https://letter-to-god-9abe1-default-rtdb.firebaseio.com",
         projectId: "letter-to-god-9abe1",
         storageBucket: "letter-to-god-9abe1.appspot.com",
         messagingSenderId: "587186245842",
@@ -118,6 +124,7 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth();
+    const db = getDatabase();
 
     window.signInWithGoogle = function () {
         const provider = new GoogleAuthProvider();
@@ -126,6 +133,7 @@
                 document.getElementById("loginPopup").style.display = "none";
                 document.querySelector(".container").style.display = "block";
                 document.querySelector(".footer").style.display = "block";
+                loadMessages();
             })
             .catch(error => {
                 alert("Login failed: " + error.message);
@@ -137,24 +145,59 @@
             document.getElementById("loginPopup").style.display = "none";
             document.querySelector(".container").style.display = "block";
             document.querySelector(".footer").style.display = "block";
+            loadMessages();
         }
     });
-</script>
 
-<script>
-    function submitMessage() {
-        let userMessage = document.getElementById("userMessage").value;
-        let messageBox = document.getElementById("userMessageBox");
+    window.submitMessage = function () {
+        const name = document.getElementById("userName").value.trim();
+        const message = document.getElementById("userMessage").value.trim();
+        const user = auth.currentUser;
 
-        if (userMessage.trim() != "") {
-            messageBox.style.display = "block";
-            messageBox.innerHTML = "<strong>User wrote:</strong><br>" + userMessage;
+        if (name && message && user) {
+            const msgRef = ref(db, 'messages');
+            push(msgRef, {
+                name: name,
+                message: message,
+                uid: user.uid
+            });
             document.getElementById("userMessage").value = "";
         } else {
-            alert("Please enter a message.");
+            alert("Please enter your name and message.");
         }
     }
-</script>
 
-</body>
+    function loadMessages() {
+        const msgRef = ref(db, 'messages');
+        onValue(msgRef, snapshot => {
+            const data = snapshot.val();
+            const box = document.getElementById("userMessageBox");
+            box.innerHTML = "";
+
+            for (let id in data) {
+                const msg = data[id];
+                const isOwn = auth.currentUser && msg.uid === auth.currentUser.uid;
+
+                const div = document.createElement("div");
+                div.classList.add("comment-box");
+                div.innerHTML = `<strong>${msg.name} wrote:</strong><br>${msg.message}`;
+
+                const commentInput = document.createElement("input");
+                commentInput.placeholder = "Write a comment...";
+                div.appendChild(commentInput);
+
+                if (isOwn) {
+                    const delBtn = document.createElement("button");
+                    delBtn.innerText = "Delete";
+                    delBtn.onclick = () => remove(ref(db, 'messages/' + id));
+                    div.appendChild(delBtn);
+                }
+
+                box.appendChild(div);
+            }
+
+            box.style.display = "block";
+        });
+    }
+</script></body>
 </html>
