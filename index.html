@@ -1,19 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Phone Auth with Firebase</title>
+  <title>Firebase Phone Auth</title>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 </head>
 <body>
-  <h1>Phone Authentication</h1>
-  
-  <input type="text" id="phone" placeholder="+91XXXXXXXXXX" />
+  <h2>Phone Auth</h2>
+  <input type="text" id="phone" placeholder="+91XXXXXXXXXX">
   <div id="recaptcha-container"></div>
   <button onclick="sendOTP()">Send OTP</button>
 
   <br><br>
-  <input type="text" id="otp" placeholder="Enter OTP" />
+  <input type="text" id="otp" placeholder="Enter OTP">
   <button onclick="verifyOTP()">Verify OTP</button>
 
   <script>
@@ -31,43 +30,43 @@
 
     let confirmationResult;
 
-    window.onload = function() {
+    window.onload = function () {
       window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-        'size': 'normal',
-        'callback': function(response) {
-          console.log("reCAPTCHA solved");
+        size: 'normal',
+        callback: function(response) {
+          console.log("reCAPTCHA Verified");
         }
       });
       recaptchaVerifier.render();
-    }
+    };
 
     function sendOTP() {
-      const phoneNumber = document.getElementById('phone').value;
+      const phone = document.getElementById('phone').value;
 
-      if (!/^\+91\d{10}$/.test(phoneNumber)) {
-        alert("Phone number must be in +91XXXXXXXXXX format");
+      if (!/^\+91\d{10}$/.test(phone)) {
+        alert("Phone number must be in format +91XXXXXXXXXX");
         return;
       }
 
-      firebase.auth().signInWithPhoneNumber(phoneNumber, window.recaptchaVerifier)
+      firebase.auth().signInWithPhoneNumber(phone, window.recaptchaVerifier)
         .then(function(result) {
           confirmationResult = result;
-          alert("OTP Sent!");
-        })
-        .catch(function(error) {
-          alert("Error sending OTP:\n" + error.message);
+          alert("OTP Sent Successfully");
+        }).catch(function(error) {
+          console.error("Error during signInWithPhoneNumber", error);
+          alert("Error: " + error.message);
         });
     }
 
     function verifyOTP() {
       const code = document.getElementById('otp').value;
+
       confirmationResult.confirm(code)
         .then(function(result) {
-          alert("Phone number verified!");
           const user = result.user;
-        })
-        .catch(function(error) {
-          alert("Invalid OTP: " + error.message);
+          alert("Phone number verified! Logged in successfully.");
+        }).catch(function(error) {
+          alert("Invalid OTP. Try again.\n" + error.message);
         });
     }
   </script>
