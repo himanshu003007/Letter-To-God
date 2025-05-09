@@ -1,229 +1,76 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Private Chat</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f0f8ff;
-            text-align: center;
-        }
-        .container {
-            padding: 20px;
-        }
-        input, button {
-            padding: 10px;
-            margin: 10px;
-            width: 80%;
-            max-width: 500px;
-            font-size: 16px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-        button {
-            background-color: #4b0082;
-            color: white;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #6a0dad;
-        }
-        #chat-container {
-            display: none;
-            padding: 20px;
-        }
-        #group-container {
-            display: none;
-            padding: 20px;
-        }
-        #messages-container {
-            margin-top: 20px;
-            text-align: left;
-        }
-        .message {
-            background-color: #f9f9f9;
-            margin: 5px;
-            padding: 10px;
-            border-radius: 5px;
-            border-left: 3px solid #4b0082;
-        }
-    </style>
+  <title>Phone Auth with Firebase</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 </head>
 <body>
-    <h1>Private Chat</h1>
-    <div id="login-container">
-        <h2>Sign In with Phone or Google</h2>
-        <!-- Phone Number Login -->
-        <input type="text" id="phone-number" placeholder="Enter your phone number" />
-        <button onclick="phoneSignIn()">Sign In with Phone</button>
+  <h2>Phone Authentication</h2>
 
-        <!-- Google Login -->
-        <button onclick="googleSignIn()">Sign In with Google</button>
-    </div>
+  <input type="text" id="phoneNumber" placeholder="+91XXXXXXXXXX">
+  <div id="recaptcha-container"></div>
+  <button onclick="sendOTP()">Send OTP</button>
 
-    <div id="chat-container">
-        <h2>Create or Join Group</h2>
-        <input type="text" id="group-name" placeholder="Enter group name" />
-        <button onclick="createGroup()">Create Group</button>
-        <input type="text" id="group-password" placeholder="Enter group password" />
-        <button onclick="joinGroup()">Join Group</button>
+  <br><br>
 
-        <div id="group-container">
-            <h2>Messages</h2>
-            <div id="messages-container"></div>
-            <input type="text" id="message-input" placeholder="Type your message" />
-            <button onclick="sendMessage()">Send</button>
-        </div>
-    </div>
+  <input type="text" id="otp" placeholder="Enter OTP">
+  <button onclick="verifyOTP()">Verify OTP</button>
 
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-        import { getAuth, signInWithPhoneNumber, RecaptchaVerifier, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
-        import { getDatabase, ref, set, get, push, onValue } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
+  <script>
+    // Your Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKlOPu9Z_OdO5hobNTrDLh5rOK_KojZvk",
+      authDomain: "private-chats-9203c.firebaseapp.com",
+      databaseURL: "https://private-chats-9203c-default-rtdb.firebaseio.com",
+      projectId: "private-chats-9203c",
+      storageBucket: "private-chats-9203c.firebasestorage.app",
+      messagingSenderId: "421397155816",
+      appId: "1:421397155816:web:84b3cdc9218355c34a1e5d",
+      measurementId: "G-RN1N2XKNDV"
+    };
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBKlOPu9Z_OdO5hobNTrDLh5rOK_KojZvk",
-            authDomain: "private-chats-9203c.firebaseapp.com",
-            databaseURL: "https://private-chats-9203c-default-rtdb.firebaseio.com",
-            projectId: "private-chats-9203c",
-            storageBucket: "private-chats-9203c.appspot.com",
-            messagingSenderId: "421397155816",
-            appId: "1:421397155816:web:84b3cdc9218355c34a1e5d",
-            measurementId: "G-RN1N2XKNDV"
-        };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth();
-        const db = getDatabase();
+    // Render reCAPTCHA
+    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+      'size': 'normal',
+      'callback': (response) => {
+        console.log("reCAPTCHA Verified!");
+      },
+      'expired-callback': () => {
+        alert("reCAPTCHA expired, please try again.");
+      }
+    });
+    recaptchaVerifier.render();
 
-        let currentGroupName = "";
+    function sendOTP() {
+      const phoneNumber = document.getElementById("phoneNumber").value;
+      const appVerifier = window.recaptchaVerifier;
 
-        // Phone Sign In
-        function phoneSignIn() {
-            const phoneNumber = document.getElementById("phone-number").value;
-            const appVerifier = new RecaptchaVerifier('login-container', {
-                size: 'invisible',
-                callback: (response) => {
-                    // reCAPTCHA solved - will proceed with phone sign-in
-                }
-            }, auth);
-
-            signInWithPhoneNumber(auth, phoneNumber, appVerifier)
-                .then((confirmationResult) => {
-                    const code = prompt("Enter the verification code received via SMS");
-                    return confirmationResult.confirm(code);
-                })
-                .then((userCredential) => {
-                    document.getElementById("login-container").style.display = 'none';
-                    document.getElementById("chat-container").style.display = 'block';
-                })
-                .catch((error) => {
-                    alert('Error signing in with phone: ' + error.message);
-                });
-        }
-
-        // Google Sign In
-        function googleSignIn() {
-            const provider = new GoogleAuthProvider();
-            signInWithPopup(auth, provider)
-                .then((result) => {
-                    document.getElementById("login-container").style.display = 'none';
-                    document.getElementById("chat-container").style.display = 'block';
-                })
-                .catch((error) => {
-                    alert('Error signing in with Google: ' + error.message);
-                });
-        }
-
-        function createGroup() {
-            const groupName = document.getElementById("group-name").value;
-            const groupPassword = document.getElementById("group-password").value;
-
-            if (groupName && groupPassword) {
-                const groupRef = ref(db, 'groups/' + groupName);
-                set(groupRef, {
-                    name: groupName,
-                    password: groupPassword
-                })
-                .then(() => {
-                    alert('Group created!');
-                    joinGroup(); // Auto join after creation
-                })
-                .catch((error) => {
-                    alert('Error creating group: ' + error.message);
-                });
-            }
-        }
-
-        function joinGroup() {
-            const groupName = document.getElementById("group-name").value;
-            const groupPassword = document.getElementById("group-password").value;
-            const groupRef = ref(db, 'groups/' + groupName);
-
-            get(groupRef)
-                .then((snapshot) => {
-                    if (snapshot.exists()) {
-                        const group = snapshot.val();
-                        if (group.password === groupPassword) {
-                            alert('Joined group: ' + groupName);
-                            currentGroupName = groupName;
-                            document.getElementById("group-container").style.display = 'block';
-                            loadMessages(groupName);
-                        } else {
-                            alert('Incorrect password!');
-                        }
-                    } else {
-                        alert('Group does not exist!');
-                    }
-                })
-                .catch((error) => {
-                    alert('Error joining group: ' + error.message);
-                });
-        }
-
-        function loadMessages(groupName) {
-            const messagesRef = ref(db, 'groups/' + groupName + '/messages');
-
-            onValue(messagesRef, (snapshot) => {
-                const messages = snapshot.val();
-                const messagesContainer = document.getElementById("messages-container");
-                messagesContainer.innerHTML = '';
-
-                if (messages) {
-                    Object.keys(messages).forEach((id) => {
-                        const msg = messages[id];
-                        const div = document.createElement("div");
-                        div.classList.add("message");
-                        div.textContent = msg;
-                        messagesContainer.appendChild(div);
-                    });
-                }
-            });
-        }
-
-        function sendMessage() {
-            const message = document.getElementById("message-input").value;
-            if (message.trim() === "" || currentGroupName === "") return;
-
-            const messagesRef = ref(db, 'groups/' + currentGroupName + '/messages');
-            const newMsgRef = push(messagesRef);
-            set(newMsgRef, message)
-                .then(() => {
-                    document.getElementById("message-input").value = "";
-                });
-        }
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                document.getElementById("login-container").style.display = 'none';
-                document.getElementById("chat-container").style.display = 'block';
-            }
+      auth.signInWithPhoneNumber(phoneNumber, appVerifier)
+        .then((confirmationResult) => {
+          window.confirmationResult = confirmationResult;
+          alert("OTP Sent!");
+        })
+        .catch((error) => {
+          alert("Error sending OTP: " + error.message);
         });
-    </script>
+    }
+
+    function verifyOTP() {
+      const code = document.getElementById("otp").value;
+      confirmationResult.confirm(code)
+        .then((result) => {
+          alert("Phone Number Verified!");
+          const user = result.user;
+          console.log(user);
+        })
+        .catch((error) => {
+          alert("Invalid OTP");
+        });
+    }
+  </script>
 </body>
 </html>
