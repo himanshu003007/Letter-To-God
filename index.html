@@ -6,69 +6,68 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 </head>
 <body>
-  <h2>Phone Authentication</h2>
-
-  <input type="text" id="phoneNumber" placeholder="+91XXXXXXXXXX">
+  <h1>Phone Authentication</h1>
+  
+  <input type="text" id="phone" placeholder="+91XXXXXXXXXX" />
   <div id="recaptcha-container"></div>
   <button onclick="sendOTP()">Send OTP</button>
 
   <br><br>
-
-  <input type="text" id="otp" placeholder="Enter OTP">
+  <input type="text" id="otp" placeholder="Enter OTP" />
   <button onclick="verifyOTP()">Verify OTP</button>
 
   <script>
-    // Your Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBKlOPu9Z_OdO5hobNTrDLh5rOK_KojZvk",
       authDomain: "private-chats-9203c.firebaseapp.com",
-      databaseURL: "https://private-chats-9203c-default-rtdb.firebaseio.com",
       projectId: "private-chats-9203c",
-      storageBucket: "private-chats-9203c.firebasestorage.app",
+      storageBucket: "private-chats-9203c.appspot.com",
       messagingSenderId: "421397155816",
       appId: "1:421397155816:web:84b3cdc9218355c34a1e5d",
       measurementId: "G-RN1N2XKNDV"
     };
 
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
 
-    // Render reCAPTCHA
-    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-      'size': 'normal',
-      'callback': (response) => {
-        console.log("reCAPTCHA Verified!");
-      },
-      'expired-callback': () => {
-        alert("reCAPTCHA expired, please try again.");
-      }
-    });
-    recaptchaVerifier.render();
+    let confirmationResult;
+
+    window.onload = function() {
+      window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+        'size': 'normal',
+        'callback': function(response) {
+          console.log("reCAPTCHA solved");
+        }
+      });
+      recaptchaVerifier.render();
+    }
 
     function sendOTP() {
-      const phoneNumber = document.getElementById("phoneNumber").value;
-      const appVerifier = window.recaptchaVerifier;
+      const phoneNumber = document.getElementById('phone').value;
 
-      auth.signInWithPhoneNumber(phoneNumber, appVerifier)
-        .then((confirmationResult) => {
-          window.confirmationResult = confirmationResult;
+      if (!/^\+91\d{10}$/.test(phoneNumber)) {
+        alert("Phone number must be in +91XXXXXXXXXX format");
+        return;
+      }
+
+      firebase.auth().signInWithPhoneNumber(phoneNumber, window.recaptchaVerifier)
+        .then(function(result) {
+          confirmationResult = result;
           alert("OTP Sent!");
         })
-        .catch((error) => {
-          alert("Error sending OTP: " + error.message);
+        .catch(function(error) {
+          alert("Error sending OTP:\n" + error.message);
         });
     }
 
     function verifyOTP() {
-      const code = document.getElementById("otp").value;
+      const code = document.getElementById('otp').value;
       confirmationResult.confirm(code)
-        .then((result) => {
-          alert("Phone Number Verified!");
+        .then(function(result) {
+          alert("Phone number verified!");
           const user = result.user;
-          console.log(user);
         })
-        .catch((error) => {
-          alert("Invalid OTP");
+        .catch(function(error) {
+          alert("Invalid OTP: " + error.message);
         });
     }
   </script>
