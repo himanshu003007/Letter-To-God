@@ -12,11 +12,9 @@
             background-color: #f0f8ff;
             text-align: center;
         }
-
         .container {
             padding: 20px;
         }
-
         input, button {
             padding: 10px;
             margin: 10px;
@@ -26,32 +24,26 @@
             border-radius: 5px;
             border: 1px solid #ccc;
         }
-
         button {
             background-color: #4b0082;
             color: white;
             cursor: pointer;
         }
-
         button:hover {
             background-color: #6a0dad;
         }
-
         #chat-container {
             display: none;
             padding: 20px;
         }
-
         #group-container {
             display: none;
             padding: 20px;
         }
-
         #messages-container {
             margin-top: 20px;
             text-align: left;
         }
-
         .message {
             background-color: #f9f9f9;
             margin: 5px;
@@ -81,46 +73,44 @@
         <div id="group-container">
             <h2>Messages</h2>
             <div id="messages-container"></div>
+            <input type="text" id="message-input" placeholder="Type your message" />
+            <button onclick="sendMessage()">Send</button>
         </div>
     </div>
 
     <!-- Firebase SDKs -->
     <script type="module">
-        // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
-        import { getDatabase, ref, set, get, child, push, onValue } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
+        import { getDatabase, ref, set, get, push, onValue } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
 
-        // Your web app's Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBKlOPu9Z_OdO5hobNTrDLh5rOK_KojZvk",
             authDomain: "private-chats-9203c.firebaseapp.com",
             databaseURL: "https://private-chats-9203c-default-rtdb.firebaseio.com",
             projectId: "private-chats-9203c",
-            storageBucket: "private-chats-9203c.firebasestorage.app",
+            storageBucket: "private-chats-9203c.appspot.com",
             messagingSenderId: "421397155816",
             appId: "1:421397155816:web:84b3cdc9218355c34a1e5d",
             measurementId: "G-RN1N2XKNDV"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth();
         const db = getDatabase();
 
-        // Handle user authentication
+        let currentGroupName = "";
+
         function signUp() {
             const email = document.getElementById("email").value;
             const password = document.getElementById("password").value;
 
             createUserWithEmailAndPassword(auth, email, password)
                 .then((userCredential) => {
-                    console.log('User created:', userCredential.user);
                     document.getElementById("login-container").style.display = 'none';
                     document.getElementById("chat-container").style.display = 'block';
                 })
                 .catch((error) => {
-                    console.error('Error signing up:', error);
                     alert('Error signing up: ' + error.message);
                 });
         }
@@ -131,17 +121,14 @@
 
             signInWithEmailAndPassword(auth, email, password)
                 .then((userCredential) => {
-                    console.log('User signed in:', userCredential.user);
                     document.getElementById("login-container").style.display = 'none';
                     document.getElementById("chat-container").style.display = 'block';
                 })
                 .catch((error) => {
-                    console.error('Error signing in:', error);
                     alert('Error signing in: ' + error.message);
                 });
         }
 
-        // Create group
         function createGroup() {
             const groupName = document.getElementById("group-name").value;
             const groupPassword = document.getElementById("group-password").value;
@@ -150,12 +137,11 @@
                 const groupRef = ref(db, 'groups/' + groupName);
                 set(groupRef, {
                     name: groupName,
-                    password: groupPassword,
-                    messages: []
+                    password: groupPassword
                 })
                 .then(() => {
                     alert('Group created!');
-                    joinGroup();
+                    joinGroup(); // Auto join after creation
                 })
                 .catch((error) => {
                     alert('Error creating group: ' + error.message);
@@ -163,11 +149,9 @@
             }
         }
 
-        // Join group
         function joinGroup() {
             const groupName = document.getElementById("group-name").value;
             const groupPassword = document.getElementById("group-password").value;
-
             const groupRef = ref(db, 'groups/' + groupName);
 
             get(groupRef)
@@ -176,6 +160,8 @@
                         const group = snapshot.val();
                         if (group.password === groupPassword) {
                             alert('Joined group: ' + groupName);
+                            currentGroupName = groupName;
+                            document.getElementById("group-container").style.display = 'block';
                             loadMessages(groupName);
                         } else {
                             alert('Incorrect password!');
@@ -189,7 +175,6 @@
                 });
         }
 
-        // Load messages for the group
         function loadMessages(groupName) {
             const messagesRef = ref(db, 'groups/' + groupName + '/messages');
 
@@ -199,18 +184,29 @@
                 messagesContainer.innerHTML = '';
 
                 if (messages) {
-                    Object.keys(messages).forEach((messageId) => {
-                        const message = messages[messageId];
-                        const messageElement = document.createElement("div");
-                        messageElement.classList.add("message");
-                        messageElement.textContent = message;
-                        messagesContainer.appendChild(messageElement);
+                    Object.keys(messages).forEach((id) => {
+                        const msg = messages[id];
+                        const div = document.createElement("div");
+                        div.classList.add("message");
+                        div.textContent = msg;
+                        messagesContainer.appendChild(div);
                     });
                 }
             });
         }
 
-        // On auth state change
+        function sendMessage() {
+            const message = document.getElementById("message-input").value;
+            if (message.trim() === "" || currentGroupName === "") return;
+
+            const messagesRef = ref(db, 'groups/' + currentGroupName + '/messages');
+            const newMsgRef = push(messagesRef);
+            set(newMsgRef, message)
+                .then(() => {
+                    document.getElementById("message-input").value = "";
+                });
+        }
+
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 document.getElementById("login-container").style.display = 'none';
