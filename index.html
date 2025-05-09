@@ -1,203 +1,222 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="google-site-verification" content="zpaKlbdOCubG4ZlQrhe_fZItWFReLD2q6IRLhAIznoI" />
-    <title>Letter to God – Share Your Thoughts</title>
+    <title>Private Chat</title>
     <style>
-    body {
-        font-family: Arial, sans-serif;
-        background-color: #f0f8ff;
-        color: #333;
-        margin: 0;
-        padding: 0;
-        text-align: center;
-    }h1 {
-    color: #4b0082;
-}
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f8ff;
+            text-align: center;
+        }
 
-.container, .message, .response, .footer {
-    display: none;
-}
+        .container {
+            padding: 20px;
+        }
 
-input[type="text"], textarea {
-    padding: 15px;
-    font-size: 16px;
-    width: 80%;
-    border: 2px solid #4b0082;
-    border-radius: 5px;
-    margin-bottom: 20px;
-}
+        input, button {
+            padding: 10px;
+            margin: 10px;
+            width: 80%;
+            max-width: 500px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
 
-button {
-    padding: 10px 20px;
-    background-color: #4b0082;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-size: 18px;
-    cursor: pointer;
-}
+        button {
+            background-color: #4b0082;
+            color: white;
+            cursor: pointer;
+        }
 
-button:hover {
-    background-color: #6a0dad;
-}
+        button:hover {
+            background-color: #6a0dad;
+        }
 
-#loginPopup {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(to right, #8360c3, #2ebf91);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-}
+        #chat-container {
+            display: none;
+            padding: 20px;
+        }
 
-#loginBox {
-    background-color: white;
-    padding: 40px;
-    border-radius: 12px;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-    width: 320px;
-    text-align: center;
-    animation: fadeIn 0.6s ease;
-}
+        #group-container {
+            display: none;
+            padding: 20px;
+        }
 
-#loginBox h2 {
-    margin-bottom: 20px;
-    color: #4b0082;
-}
+        #messages-container {
+            margin-top: 20px;
+            text-align: left;
+        }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
-}
-
-.comment-section {
-    margin-top: 20px;
-}
-.comment-box {
-    width: 80%;
-    margin: 10px auto;
-    text-align: left;
-    border: 1px solid #ccc;
-    padding: 10px;
-    border-radius: 5px;
-    background: #fff;
-}
-</style>
-
+        .message {
+            background-color: #f9f9f9;
+            margin: 5px;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 3px solid #4b0082;
+        }
+    </style>
 </head>
 <body>
-<div id="loginPopup">
-    <div id="loginBox">
-        <h2>Please sign in with Google</h2>
-        <button onclick="signInWithGoogle()">Sign in with Google</button>
+    <h1>Private Chat</h1>
+    <div id="login-container">
+        <h2>Create Account or Sign In</h2>
+        <input type="email" id="email" placeholder="Enter your email" />
+        <input type="password" id="password" placeholder="Enter your password" />
+        <button onclick="signUp()">Sign Up</button>
+        <button onclick="signIn()">Sign In</button>
     </div>
-</div><h1>Letter to God – Speak Your Heart</h1><div class="container">
-    <p>Write your thoughts, questions, or prayers below.</p>
-    <input type="text" id="userName" placeholder="Your Name (required)" required />
-    <input type="text" id="userMessage" placeholder="Type your message here..." />
-    <br />
-    <button onclick="submitMessage()">Send Message</button>
-    <div class="message" id="userMessageBox"></div>
-</div><div class="footer">
-    <p>© 2025 All Rights Reserved</p>
-</div><!-- Firebase SDKs --><script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
-    import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyBlo85PsKPD1lB1bVJgwL6sm8bp7K-9OG0",
-        authDomain: "letter-to-god-9abe1.firebaseapp.com",
-        databaseURL: "https://letter-to-god-9abe1-default-rtdb.firebaseio.com",
-        projectId: "letter-to-god-9abe1",
-        storageBucket: "letter-to-god-9abe1.appspot.com",
-        messagingSenderId: "587186245842",
-        appId: "1:587186245842:web:dd1711cdddcde41ed31d0b",
-        measurementId: "G-Z7ZL41DWRE"
-    };
+    <div id="chat-container">
+        <h2>Create or Join Group</h2>
+        <input type="text" id="group-name" placeholder="Enter group name" />
+        <button onclick="createGroup()">Create Group</button>
+        <input type="text" id="group-password" placeholder="Enter group password" />
+        <button onclick="joinGroup()">Join Group</button>
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth();
-    const db = getDatabase();
+        <div id="group-container">
+            <h2>Messages</h2>
+            <div id="messages-container"></div>
+        </div>
+    </div>
 
-    window.signInWithGoogle = function () {
-        const provider = new GoogleAuthProvider();
-        signInWithPopup(auth, provider)
-            .then(result => {
-                document.getElementById("loginPopup").style.display = "none";
-                document.querySelector(".container").style.display = "block";
-                document.querySelector(".footer").style.display = "block";
-                loadMessages();
-            })
-            .catch(error => {
-                alert("Login failed: " + error.message);
-            });
-    };
+    <!-- Firebase SDKs -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
+        import { getDatabase, ref, set, get, child, push, onValue } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
 
-    onAuthStateChanged(auth, user => {
-        if (user) {
-            document.getElementById("loginPopup").style.display = "none";
-            document.querySelector(".container").style.display = "block";
-            document.querySelector(".footer").style.display = "block";
-            loadMessages();
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBKlOPu9Z_OdO5hobNTrDLh5rOK_KojZvk",
+            authDomain: "private-chats-9203c.firebaseapp.com",
+            databaseURL: "https://private-chats-9203c-default-rtdb.firebaseio.com",
+            projectId: "private-chats-9203c",
+            storageBucket: "private-chats-9203c.firebasestorage.app",
+            messagingSenderId: "421397155816",
+            appId: "1:421397155816:web:84b3cdc9218355c34a1e5d",
+            measurementId: "G-RN1N2XKNDV"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth();
+        const db = getDatabase();
+
+        // Handle user authentication
+        function signUp() {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            createUserWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    console.log('User created:', userCredential.user);
+                    document.getElementById("login-container").style.display = 'none';
+                    document.getElementById("chat-container").style.display = 'block';
+                })
+                .catch((error) => {
+                    console.error('Error signing up:', error);
+                    alert('Error signing up: ' + error.message);
+                });
         }
-    });
 
-    window.submitMessage = function () {
-        const name = document.getElementById("userName").value.trim();
-        const message = document.getElementById("userMessage").value.trim();
-        const user = auth.currentUser;
+        function signIn() {
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
 
-        if (name && message && user) {
-            const msgRef = ref(db, 'messages');
-            push(msgRef, {
-                name: name,
-                message: message,
-                uid: user.uid
-            });
-            document.getElementById("userMessage").value = "";
-        } else {
-            alert("Please enter your name and message.");
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    console.log('User signed in:', userCredential.user);
+                    document.getElementById("login-container").style.display = 'none';
+                    document.getElementById("chat-container").style.display = 'block';
+                })
+                .catch((error) => {
+                    console.error('Error signing in:', error);
+                    alert('Error signing in: ' + error.message);
+                });
         }
-    }
 
-    function loadMessages() {
-        const msgRef = ref(db, 'messages');
-        onValue(msgRef, snapshot => {
-            const data = snapshot.val();
-            const box = document.getElementById("userMessageBox");
-            box.innerHTML = "";
+        // Create group
+        function createGroup() {
+            const groupName = document.getElementById("group-name").value;
+            const groupPassword = document.getElementById("group-password").value;
 
-            for (let id in data) {
-                const msg = data[id];
-                const isOwn = auth.currentUser && msg.uid === auth.currentUser.uid;
-
-                const div = document.createElement("div");
-                div.classList.add("comment-box");
-                div.innerHTML = `<strong>${msg.name} wrote:</strong><br>${msg.message}`;
-
-                const commentInput = document.createElement("input");
-                commentInput.placeholder = "Write a comment...";
-                div.appendChild(commentInput);
-
-                if (isOwn) {
-                    const delBtn = document.createElement("button");
-                    delBtn.innerText = "Delete";
-                    delBtn.onclick = () => remove(ref(db, 'messages/' + id));
-                    div.appendChild(delBtn);
-                }
-
-                box.appendChild(div);
+            if (groupName && groupPassword) {
+                const groupRef = ref(db, 'groups/' + groupName);
+                set(groupRef, {
+                    name: groupName,
+                    password: groupPassword,
+                    messages: []
+                })
+                .then(() => {
+                    alert('Group created!');
+                    joinGroup();
+                })
+                .catch((error) => {
+                    alert('Error creating group: ' + error.message);
+                });
             }
+        }
 
-            box.style.display = "block";
+        // Join group
+        function joinGroup() {
+            const groupName = document.getElementById("group-name").value;
+            const groupPassword = document.getElementById("group-password").value;
+
+            const groupRef = ref(db, 'groups/' + groupName);
+
+            get(groupRef)
+                .then((snapshot) => {
+                    if (snapshot.exists()) {
+                        const group = snapshot.val();
+                        if (group.password === groupPassword) {
+                            alert('Joined group: ' + groupName);
+                            loadMessages(groupName);
+                        } else {
+                            alert('Incorrect password!');
+                        }
+                    } else {
+                        alert('Group does not exist!');
+                    }
+                })
+                .catch((error) => {
+                    alert('Error joining group: ' + error.message);
+                });
+        }
+
+        // Load messages for the group
+        function loadMessages(groupName) {
+            const messagesRef = ref(db, 'groups/' + groupName + '/messages');
+
+            onValue(messagesRef, (snapshot) => {
+                const messages = snapshot.val();
+                const messagesContainer = document.getElementById("messages-container");
+                messagesContainer.innerHTML = '';
+
+                if (messages) {
+                    Object.keys(messages).forEach((messageId) => {
+                        const message = messages[messageId];
+                        const messageElement = document.createElement("div");
+                        messageElement.classList.add("message");
+                        messageElement.textContent = message;
+                        messagesContainer.appendChild(messageElement);
+                    });
+                }
+            });
+        }
+
+        // On auth state change
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById("login-container").style.display = 'none';
+                document.getElementById("chat-container").style.display = 'block';
+            }
         });
-    }
-</script></body>
+    </script>
+</body>
 </html>
