@@ -1,4 +1,4 @@
-<!-- index.html --><!DOCTYPE html><html>
+<!DOCTYPE html><html>
 <head>
   <title>Private Chat App</title>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -6,17 +6,16 @@
 </head>
 <body>
   <h2>Welcome to Private Chat App</h2>
-  <div id="user-section" style="display: none;">
-    <p id="welcome"></p>
-    <button onclick="showGroupOptions()">Continue</button>
-  </div>
   <div id="login-section">
     <button onclick="loginWithGoogle()">Login with Google</button>
   </div>
-  <div id="group-options" style="display:none;">
-    <h3>Choose an Option</h3>
-    <button onclick="window.location.href='create-group.html'">Create Group</button>
-    <button onclick="window.location.href='join-group.html'">Join Group</button>
+  <div id="user-section" style="display: none;">
+    <p id="welcome"></p>
+    <div id="group-options">
+      <h3>Choose an Option</h3>
+      <button onclick="window.location.href='create-group.html'">Create Group</button>
+      <button onclick="window.location.href='join-group.html'">Join Group</button>
+    </div>
   </div>  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBKlOPu9Z_OdO5hobNTrDLh5rOK_KojZvk",
@@ -27,6 +26,7 @@
       appId: "1:421397155816:web:84b3cdc9218355c34a1e5d",
       measurementId: "G-RN1N2XKNDV"
     };
+
     firebase.initializeApp(firebaseConfig);
 
     function loginWithGoogle() {
@@ -42,94 +42,16 @@
         });
     }
 
-    function showGroupOptions() {
-      document.getElementById('user-section').style.display = 'none';
-      document.getElementById('group-options').style.display = 'block';
-    }
-  </script></body>
-</html><!-- create-group.html --><!DOCTYPE html><html>
-<head>
-  <title>Create Group</title>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-</head>
-<body>
-  <h2>Create a Group</h2>
-  <input type="text" id="groupName" placeholder="Enter Group Name" /><br><br>
-  <input type="password" id="groupPassword" placeholder="Set a Password" /><br><br>
-  <button onclick="createGroup()">Create Group</button>  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBKlOPu9Z_OdO5hobNTrDLh5rOK_KojZvk",
-      authDomain: "private-chats-9203c.firebaseapp.com",
-      databaseURL: "https://private-chats-9203c-default-rtdb.firebaseio.com",
-      projectId: "private-chats-9203c",
-      storageBucket: "private-chats-9203c.appspot.com",
-      messagingSenderId: "421397155816",
-      appId: "1:421397155816:web:84b3cdc9218355c34a1e5d"
-    };
-    firebase.initializeApp(firebaseConfig);
-
-    function createGroup() {
-      const name = document.getElementById('groupName').value;
-      const password = document.getElementById('groupPassword').value;
-
-      if (!name || !password) {
-        alert("Please fill both fields.");
-        return;
+    // Auto redirect to login if not signed in
+    firebase.auth().onAuthStateChanged(user => {
+      if (!user) {
+        document.getElementById('login-section').style.display = 'block';
+        document.getElementById('user-section').style.display = 'none';
+      } else {
+        document.getElementById('login-section').style.display = 'none';
+        document.getElementById('user-section').style.display = 'block';
+        document.getElementById('welcome').innerText = `Welcome, ${user.displayName}`;
       }
-
-      firebase.database().ref('groups/' + name).set({
-        password: password
-      }, (error) => {
-        if (error) {
-          alert("Error creating group: " + error.message);
-        } else {
-          alert("Group created successfully!");
-          window.location.href = 'index.html';
-        }
-      });
-    }
-  </script></body>
-</html><!-- join-group.html --><!DOCTYPE html><html>
-<head>
-  <title>Join Group</title>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-</head>
-<body>
-  <h2>Join a Group</h2>
-  <input type="text" id="groupName" placeholder="Enter Group Name" /><br><br>
-  <input type="password" id="groupPassword" placeholder="Enter Group Password" /><br><br>
-  <button onclick="joinGroup()">Join Group</button>  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBKlOPu9Z_OdO5hobNTrDLh5rOK_KojZvk",
-      authDomain: "private-chats-9203c.firebaseapp.com",
-      databaseURL: "https://private-chats-9203c-default-rtdb.firebaseio.com",
-      projectId: "private-chats-9203c",
-      storageBucket: "private-chats-9203c.appspot.com",
-      messagingSenderId: "421397155816",
-      appId: "1:421397155816:web:84b3cdc9218355c34a1e5d"
-    };
-    firebase.initializeApp(firebaseConfig);
-
-    function joinGroup() {
-      const name = document.getElementById('groupName').value;
-      const password = document.getElementById('groupPassword').value;
-
-      firebase.database().ref('groups/' + name).get().then(snapshot => {
-        if (!snapshot.exists()) {
-          alert("Group does not exist");
-          return;
-        }
-
-        const data = snapshot.val();
-        if (data.password === password) {
-          alert("Joined group successfully!");
-          // Redirect to group chat page (not implemented yet)
-        } else {
-          alert("Incorrect password");
-        }
-      });
-    }
+    });
   </script></body>
 </html>
