@@ -1,18 +1,33 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Create Group</title>
+  <title>Group Page</title>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <h2>Create a New Group</h2>
-  <form id="create-group-form">
-    <input type="text" id="group-name" placeholder="Group Name" required><br><br>
-    <input type="password" id="group-password" placeholder="Group Password" required><br><br>
-    <button type="submit">Create Group</button>
-  </form>
+  <h2>Welcome to Group App</h2>
+
+  <div id="login-section">
+    <button onclick="signInWithGoogle()">Login with Google</button>
+  </div>
+
+  <div id="group-section" style="display:none;">
+    <h3>Create Group</h3>
+    <form id="create-group-form">
+      <input type="text" id="group-name" placeholder="Group Name" required><br><br>
+      <input type="password" id="group-password" placeholder="Group Password" required><br><br>
+      <button type="submit">Create Group</button>
+    </form>
+
+    <h3>Join Group</h3>
+    <form id="join-group-form">
+      <input type="text" id="join-group-name" placeholder="Group Name" required><br><br>
+      <input type="password" id="join-group-password" placeholder="Group Password" required><br><br>
+      <button type="submit">Join Group</button>
+    </form>
+  </div>
 
   <script>
     const firebaseConfig = {
@@ -25,7 +40,27 @@
     };
 
     firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
     const db = firebase.firestore();
+
+    function signInWithGoogle() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider)
+        .then(() => {
+          document.getElementById("login-section").style.display = "none";
+          document.getElementById("group-section").style.display = "block";
+        })
+        .catch(error => {
+          alert("Login failed: " + error.message);
+        });
+    }
+
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        document.getElementById("login-section").style.display = "none";
+        document.getElementById("group-section").style.display = "block";
+      }
+    });
 
     document.getElementById("create-group-form").addEventListener("submit", async function(e) {
       e.preventDefault();
@@ -38,9 +73,29 @@
           createdAt: new Date()
         });
         alert("Group created successfully!");
-        window.location.href = "chat.html"; // make sure this file exists!
+        window.location.href = "chat.html";
       } catch (error) {
         alert("Error creating group: " + error.message);
+      }
+    });
+
+    document.getElementById("join-group-form").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const groupName = document.getElementById("join-group-name").value;
+      const groupPassword = document.getElementById("join-group-password").value;
+
+      try {
+        const doc = await db.collection("groups").doc(groupName).get();
+        if (!doc.exists) {
+          alert("Group not found!");
+        } else if (doc.data().password === groupPassword) {
+          alert("Joined group successfully!");
+          window.location.href = "chat.html";
+        } else {
+          alert("Incorrect password!");
+        }
+      } catch (error) {
+        alert("Error joining group: " + error.message);
       }
     });
   </script>
