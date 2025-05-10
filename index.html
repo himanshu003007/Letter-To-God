@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html>
+<!DOCTYPE html><html>
 <head>
   <title>Create Group</title>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -7,19 +6,13 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <h2>Create a Group</h2>
-
-  <div id="login-section">
+  <h2>Create a Group</h2>  <div id="login-section">
     <button onclick="loginWithGoogle()">Login with Google</button>
-  </div>
-
-  <div id="group-form" style="display:none;">
+  </div>  <div id="group-form" style="display:none;">
     <input type="text" id="group-name" placeholder="Group Name"><br><br>
     <input type="password" id="group-password" placeholder="Group Password"><br><br>
     <button onclick="createGroup()">Create Group</button>
-  </div>
-
-  <script>
+  </div>  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBKlOPu9Z_OdO5hobNTrDLh5rOK_KojZvk",
       authDomain: "private-chats-9203c.firebaseapp.com",
@@ -58,11 +51,10 @@
         password: groupPassword
       }).then(() => {
         alert("Group created successfully!");
-        window.location.href = "index.html"; // પાછું મુખ્ય પેજ પર
+        window.location.href = "chat.html"; // redirect to chat page
       }).catch(error => {
         alert("Error creating group: " + error.message);
       });
     }
-  </script>
-</body>
+  </script></body>
 </html>
