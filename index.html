@@ -1,22 +1,15 @@
 <!DOCTYPE html><html>
 <head>
-  <title>Private Chat App</title>
+  <title>Create Group</title>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 </head>
 <body>
-  <h2>Welcome to Private Chat App</h2>
-  <div id="login-section">
-    <button onclick="loginWithGoogle()">Login with Google</button>
-  </div>
-  <div id="user-section" style="display: none;">
-    <p id="welcome"></p>
-    <div id="group-options">
-      <h3>Choose an Option</h3>
-      <button onclick="window.location.href='create-group.html'">Create Group</button>
-      <button onclick="window.location.href='join-group.html'">Join Group</button>
-    </div>
-  </div>  <script>
+  <h2>Create a New Group</h2>
+  <input type="text" id="groupName" placeholder="Enter Group Name"><br><br>
+  <input type="password" id="groupPassword" placeholder="Enter Group Password"><br><br>
+  <button onclick="createGroup()">Create Group</button>  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBKlOPu9Z_OdO5hobNTrDLh5rOK_KojZvk",
       authDomain: "private-chats-9203c.firebaseapp.com",
@@ -24,34 +17,30 @@
       storageBucket: "private-chats-9203c.appspot.com",
       messagingSenderId: "421397155816",
       appId: "1:421397155816:web:84b3cdc9218355c34a1e5d",
-      measurementId: "G-RN1N2XKNDV"
+      measurementId: "G-RN1N2XKNDV",
+      databaseURL: "https://private-chats-9203c-default-rtdb.firebaseio.com/"
     };
 
     firebase.initializeApp(firebaseConfig);
 
-    function loginWithGoogle() {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      firebase.auth().signInWithPopup(provider)
-        .then(result => {
-          document.getElementById('login-section').style.display = 'none';
-          document.getElementById('user-section').style.display = 'block';
-          document.getElementById('welcome').innerText = `Welcome, ${result.user.displayName}`;
-        })
-        .catch(error => {
-          alert("Login failed: " + error.message);
-        });
-    }
+    function createGroup() {
+      const groupName = document.getElementById('groupName').value.trim();
+      const groupPassword = document.getElementById('groupPassword').value;
 
-    // Auto redirect to login if not signed in
-    firebase.auth().onAuthStateChanged(user => {
-      if (!user) {
-        document.getElementById('login-section').style.display = 'block';
-        document.getElementById('user-section').style.display = 'none';
-      } else {
-        document.getElementById('login-section').style.display = 'none';
-        document.getElementById('user-section').style.display = 'block';
-        document.getElementById('welcome').innerText = `Welcome, ${user.displayName}`;
+      if (!groupName || !groupPassword) {
+        alert("Please enter both group name and password.");
+        return;
       }
-    });
+
+      const groupRef = firebase.database().ref('groups/' + groupName);
+      groupRef.set({
+        password: groupPassword
+      }).then(() => {
+        alert("Group created successfully!");
+        window.location.href = "index.html"; // back to main page
+      }).catch(error => {
+        alert("Error creating group: " + error.message);
+      });
+    }
   </script></body>
 </html>
