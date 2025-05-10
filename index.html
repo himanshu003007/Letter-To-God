@@ -1,15 +1,19 @@
 <!DOCTYPE html><html>
 <head>
-  <title>Create Group</title>
+  <title>Join Group - Private Chat App</title>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 </head>
 <body>
-  <h2>Create a New Group</h2>
-  <input type="text" id="groupName" placeholder="Enter Group Name"><br><br>
-  <input type="password" id="groupPassword" placeholder="Enter Group Password"><br><br>
-  <button onclick="createGroup()">Create Group</button>  <script>
+  <h2>Join Group</h2>
+  <div id="login-section">
+    <button onclick="loginWithGoogle()">Login with Google</button>
+  </div>  <div id="join-group-section" style="display:none;">
+    <input type="text" id="group-name" placeholder="Enter Group Name"><br><br>
+    <input type="password" id="group-password" placeholder="Enter Group Password"><br><br>
+    <button onclick="joinGroup()">Join Group</button>
+  </div>  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBKlOPu9Z_OdO5hobNTrDLh5rOK_KojZvk",
       authDomain: "private-chats-9203c.firebaseapp.com",
@@ -18,28 +22,48 @@
       messagingSenderId: "421397155816",
       appId: "1:421397155816:web:84b3cdc9218355c34a1e5d",
       measurementId: "G-RN1N2XKNDV",
-      databaseURL: "https://private-chats-9203c-default-rtdb.firebaseio.com/"
+      databaseURL: "https://private-chats-9203c-default-rtdb.firebaseio.com"
     };
 
     firebase.initializeApp(firebaseConfig);
 
-    function createGroup() {
-      const groupName = document.getElementById('groupName').value.trim();
-      const groupPassword = document.getElementById('groupPassword').value;
+    function loginWithGoogle() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      firebase.auth().signInWithPopup(provider)
+        .then(result => {
+          document.getElementById('login-section').style.display = 'none';
+          document.getElementById('join-group-section').style.display = 'block';
+        })
+        .catch(error => {
+          alert("Login failed: " + error.message);
+        });
+    }
+
+    function joinGroup() {
+      const groupName = document.getElementById('group-name').value;
+      const groupPassword = document.getElementById('group-password').value;
 
       if (!groupName || !groupPassword) {
-        alert("Please enter both group name and password.");
+        alert("Please fill all fields");
         return;
       }
 
-      const groupRef = firebase.database().ref('groups/' + groupName);
-      groupRef.set({
-        password: groupPassword
-      }).then(() => {
-        alert("Group created successfully!");
-        window.location.href = "index.html"; // back to main page
+      const db = firebase.database();
+      db.ref("groups/" + groupName).get().then(snapshot => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          if (data.password === groupPassword) {
+            alert("Joined group successfully!");
+            // You can redirect to the group chat page here
+          } else {
+            alert("Incorrect password");
+          }
+        } else {
+          alert("Group does not exist");
+        }
       }).catch(error => {
-        alert("Error creating group: " + error.message);
+        console.error(error);
+        alert("Error joining group");
       });
     }
   </script></body>
