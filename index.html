@@ -1,15 +1,21 @@
-<!DOCTYPE html>
-<html>
+<!DOCTYPE html><html>
 <head>
-  <title>Firebase Google Auth</title>
+  <title>Private Chat App</title>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 </head>
 <body>
-  <h2>Google Auth</h2>
-  <button onclick="googleLogin()">Login with Google</button>
-
-  <script>
+  <h2>Welcome to Private Chat App</h2>
+  <div id="user-section" style="display: none;">
+    <p id="welcome"></p>
+    <button onclick="showGroupOptions()">Continue</button>
+  </div>  <div id="login-section">
+    <button onclick="loginWithGoogle()">Login with Google</button>
+  </div>  <div id="group-options" style="display:none;">
+    <h3>Choose an Option</h3>
+    <button onclick="window.location.href='create-group.html'">Create Group</button>
+    <button onclick="window.location.href='join-group.html'">Join Group</button>
+  </div>  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBKlOPu9Z_OdO5hobNTrDLh5rOK_KojZvk",
       authDomain: "private-chats-9203c.firebaseapp.com",
@@ -22,20 +28,22 @@
 
     firebase.initializeApp(firebaseConfig);
 
-    function googleLogin() {
+    function loginWithGoogle() {
       const provider = new firebase.auth.GoogleAuthProvider();
       firebase.auth().signInWithPopup(provider)
-        .then((result) => {
-          const user = result.user;
-          alert("Logged in as: " + user.displayName);
-          // Optional: redirect
-          // window.location.href = "home.html";
+        .then(result => {
+          document.getElementById('login-section').style.display = 'none';
+          document.getElementById('user-section').style.display = 'block';
+          document.getElementById('welcome').innerText = `Welcome, ${result.user.displayName}`;
         })
-        .catch((error) => {
-          console.error(error);
+        .catch(error => {
           alert("Login failed: " + error.message);
         });
     }
-  </script>
-</body>
+
+    function showGroupOptions() {
+      document.getElementById('user-section').style.display = 'none';
+      document.getElementById('group-options').style.display = 'block';
+    }
+  </script></body>
 </html>
