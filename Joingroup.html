@@ -1,0 +1,51 @@
+<!-- join-group.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Join Group</title>
+</head>
+<body>
+  <h2>Join an Existing Group</h2>
+  <form id="join-group-form">
+    <input type="text" id="join-group-name" placeholder="Group Name" required><br><br>
+    <input type="password" id="join-group-password" placeholder="Group Password" required><br><br>
+    <button type="submit">Join Group</button>
+  </form>
+
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKlOPu9Z_OdO5hobNTrDLh5rOK_KojZvk",
+      authDomain: "private-chats-9203c.firebaseapp.com",
+      projectId: "private-chats-9203c"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    document.getElementById("join-group-form").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const groupName = document.getElementById("join-group-name").value;
+      const groupPassword = document.getElementById("join-group-password").value;
+
+      try {
+        const doc = await db.collection("groups").doc(groupName).get();
+        if (!doc.exists) {
+          alert("Group does not exist.");
+          return;
+        }
+        if (doc.data().password !== groupPassword) {
+          alert("Incorrect password.");
+          return;
+        }
+
+        alert("Successfully joined the group!");
+        localStorage.setItem("groupName", groupName);
+        window.location.href = "chat.html";
+      } catch (error) {
+        alert("Error: " + error.message);
+      }
+    });
+  </script>
+</body>
+</html>
