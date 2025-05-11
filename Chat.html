@@ -1,0 +1,52 @@
+<!-- chat.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Group Chat</title>
+</head>
+<body>
+  <h2>Group Chat</h2>
+  <div id="messages"></div>
+  <input type="text" id="message-input" placeholder="Type your message...">
+  <button onclick="sendMessage()">Send</button>
+
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKlOPu9Z_OdO5hobNTrDLh5rOK_KojZvk",
+      authDomain: "private-chats-9203c.firebaseapp.com",
+      projectId: "private-chats-9203c"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const groupName = localStorage.getItem("groupName");
+
+    function sendMessage() {
+      const message = document.getElementById("message-input").value;
+      if (message.trim() === "") return;
+
+      db.collection("groups").doc(groupName).collection("messages").add({
+        text: message,
+        timestamp: new Date()
+      });
+
+      document.getElementById("message-input").value = "";
+    }
+
+    db.collection("groups").doc(groupName).collection("messages")
+      .orderBy("timestamp")
+      .onSnapshot(snapshot => {
+        const messagesDiv = document.getElementById("messages");
+        messagesDiv.innerHTML = "";
+        snapshot.forEach(doc => {
+          const msg = doc.data();
+          const p = document.createElement("p");
+          p.textContent = msg.text;
+          messagesDiv.appendChild(p);
+        });
+      });
+  </script>
+</body>
+</html>
