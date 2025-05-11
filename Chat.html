@@ -1,27 +1,35 @@
-<!-- chat.html -->
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Group Chat</title>
+  <title>Chat Room</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
   <h2>Group Chat</h2>
   <div id="messages"></div>
-  <input type="text" id="message-input" placeholder="Type your message...">
+  <input type="text" id="message-input" placeholder="Type your message">
   <button onclick="sendMessage()">Send</button>
 
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBKlOPu9Z_OdO5hobNTrDLh5rOK_KojZvk",
       authDomain: "private-chats-9203c.firebaseapp.com",
-      projectId: "private-chats-9203c"
+      projectId: "private-chats-9203c",
+      storageBucket: "private-chats-9203c.appspot.com",
+      messagingSenderId: "421397155816",
+      appId: "1:421397155816:web:84b3cdc9218355c34a1e5d"
     };
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    const groupName = localStorage.getItem("groupName");
+    const groupName = localStorage.getItem("joinedGroup");
+
+    if (!groupName) {
+      alert("No group joined!");
+      window.location.href = "join-group.html";
+    }
 
     function sendMessage() {
       const message = document.getElementById("message-input").value;
