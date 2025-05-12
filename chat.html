@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -55,6 +54,7 @@
   <input type="text" id="messageInput" placeholder="Type your message" />
   <button id="sendButton" onclick="sendMessage()">Send</button>
 
+  <!-- Firebase Scripts -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -75,28 +75,28 @@
     const db = firebase.database();
     const auth = firebase.auth();
 
-    let currentUID = null;
+    let currentUserUid = null;
 
     auth.onAuthStateChanged(user => {
       if (user) {
-        currentUID = user.uid;
-        localStorage.setItem("userUID", currentUID);
+        currentUserUid = user.uid;
+        localStorage.setItem("uid", currentUserUid);
       } else {
-        alert("You must be logged in.");
+        currentUserUid = localStorage.getItem("uid");
       }
     });
 
     function sendMessage() {
       const msg = document.getElementById("messageInput").value;
-      const uid = localStorage.getItem("userUID");
-
-      if (msg.trim() !== "" && uid) {
-        db.ref("messages").push().set({
+      if (msg.trim() !== "" && currentUserUid) {
+        db.ref("messages").push({
           message: msg,
-          uid: uid,
+          uid: currentUserUid,
           timestamp: Date.now()
         });
         document.getElementById("messageInput").value = "";
+      } else {
+        alert("Login required or message is empty");
       }
     }
 
@@ -107,16 +107,9 @@
 
     db.ref("messages").on("child_added", function(snapshot) {
       const msgData = snapshot.val();
-      const currentUID = localStorage.getItem("userUID");
       const msgDiv = document.createElement("div");
       msgDiv.classList.add("message");
-
-      if (msgData.uid === currentUID) {
-        msgDiv.classList.add("sent");
-      } else {
-        msgDiv.classList.add("received");
-      }
-
+      msgDiv.classList.add(msgData.uid === currentUserUid ? "sent" : "received");
       msgDiv.textContent = msgData.message;
       document.getElementById("messages").appendChild(msgDiv);
       scrollToBottom();
