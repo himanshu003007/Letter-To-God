@@ -1,0 +1,124 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Group Chat</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #e5ddd5;
+      margin: 0;
+      padding: 0;
+    }
+    #messages {
+      background: #fff;
+      padding: 10px;
+      height: 300px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .message {
+      max-width: 70%;
+      padding: 10px;
+      margin: 5px;
+      border-radius: 10px;
+      word-wrap: break-word;
+    }
+    .sent {
+      align-self: flex-end;
+      background-color: #dcf8c6;
+    }
+    .received {
+      align-self: flex-start;
+      background-color: #ffffff;
+    }
+    #messageInput {
+      padding: 10px;
+      width: 70%;
+      border-radius: 20px;
+      border: 1px solid #ccc;
+    }
+    #sendButton {
+      padding: 10px 20px;
+      background-color: #128c7e;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h2>Group Chat</h2>
+  <div id="messages"></div>
+  <input type="text" id="messageInput" placeholder="Type your message" />
+  <button id="sendButton" onclick="sendMessage()">Send</button>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKlOPu9Z_0dO5hobDNTrbLhSr0K_KojZw",
+      authDomain: "private-chats-9203c.firebaseapp.com",
+      databaseURL: "https://private-chats-9203c-default-rtdb.firebaseio.com",
+      projectId: "private-chats-9203c",
+      storageBucket: "private-chats-9203c.appspot.com",
+      messagingSenderId: "421397155816",
+      appId: "1:421397155816:web:84b3cdc9218355c34a1e5d",
+      measurementId: "G-RN1N2XKNDV"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    let currentUserUid = null;
+
+    auth.onAuthStateChanged(function(user) {
+      if (user) {
+        currentUserUid = user.uid;
+        console.log("Logged in as:", user.email);
+      } else {
+        // If not logged in, redirect to login page
+        window.location.href = "index.html";
+      }
+    });
+
+    function sendMessage() {
+      const msg = document.getElementById("messageInput").value;
+      if (msg.trim() !== "" && currentUserUid) {
+        db.ref("messages").push().set({
+          message: msg,
+          uid: currentUserUid,
+          timestamp: Date.now()
+        });
+        document.getElementById("messageInput").value = "";
+      }
+    }
+
+    function scrollToBottom() {
+      const messagesDiv = document.getElementById("messages");
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    db.ref("messages").on("child_added", function(snapshot) {
+      const msgData = snapshot.val();
+      const msgDiv = document.createElement("div");
+      msgDiv.classList.add("message");
+
+      if (msgData.uid === currentUserUid) {
+        msgDiv.classList.add("sent");
+      } else {
+        msgDiv.classList.add("received");
+      }
+
+      msgDiv.textContent = msgData.message;
+      document.getElementById("messages").appendChild(msgDiv);
+      scrollToBottom();
+    });
+  </script>
+</body>
+</html>
