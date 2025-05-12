@@ -1,0 +1,167 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chat</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #e5ddd5;
+      margin: 0;
+      padding: 0;
+    }
+    #header {
+      background-color: #075e54;
+      color: white;
+      padding: 10px;
+    }
+    #messages {
+      background: #fff;
+      padding: 10px;
+      height: 300px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .message {
+      max-width: 70%;
+      padding: 10px;
+      margin: 5px;
+      border-radius: 10px;
+      word-wrap: break-word;
+      position: relative;
+    }
+    .sent {
+      align-self: flex-end;
+      background-color: #dcf8c6;
+    }
+    .received {
+      align-self: flex-start;
+      background-color: #ffffff;
+    }
+    .timestamp {
+      font-size: 10px;
+      color: gray;
+      margin-top: 4px;
+    }
+    #messageInput {
+      padding: 10px;
+      width: 70%;
+      border-radius: 20px;
+      border: 1px solid #ccc;
+    }
+    #sendButton {
+      padding: 10px 20px;
+      background-color: #128c7e;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="header">
+    <h3 id="chatUser">User Name</h3>
+    <small id="onlineStatus">Loading status...</small>
+  </div>
+  <div id="messages"></div>
+  <input type="text" id="messageInput" placeholder="Type your message" />
+  <button id="sendButton" onclick="sendMessage()">Send</button>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKlOPu9Z_0dO5hobDNTrbLhSr0K_KojZw",
+      authDomain: "private-chats-9203c.firebaseapp.com",
+      databaseURL: "https://private-chats-9203c-default-rtdb.firebaseio.com",
+      projectId: "private-chats-9203c",
+      storageBucket: "private-chats-9203c.appspot.com",
+      messagingSenderId: "421397155816",
+      appId: "1:421397155816:web:84b3cdc9218355c34a1e5d",
+      measurementId: "G-RN1N2XKNDV"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const auth = firebase.auth();
+
+    let currentUser = null;
+
+    function updateLastSeen() {
+      if (currentUser) {
+        db.ref("presence/" + currentUser.uid).set({
+          online: true,
+          lastSeen: Date.now(),
+          name: currentUser.displayName
+        });
+      }
+    }
+
+    function sendMessage() {
+      const msg = document.getElementById("messageInput").value;
+      if (msg.trim() !== "" && currentUser) {
+        db.ref("messages").push().set({
+          message: msg,
+          sender: currentUser.displayName,
+          uid: currentUser.uid,
+          timestamp: Date.now(),
+          seen: false
+        });
+        document.getElementById("messageInput").value = "";
+        updateLastSeen();
+      }
+    }
+
+    function scrollToBottom() {
+      const messagesDiv = document.getElementById("messages");
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function timeAgo(ts) {
+      const diff = Math.floor((Date.now() - ts) / 60000);
+      if (diff < 1) return "just now";
+      if (diff === 1) return "1 minute ago";
+      return diff + " minutes ago";
+    }
+
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        currentUser = user;
+        document.getElementById("chatUser").textContent = "Chat with " + user.displayName;
+        updateLastSeen();
+
+        // Show other user's online status (for demo using static key)
+        db.ref("presence").on("value", snapshot => {
+          const val = snapshot.val();
+          let other = Object.values(val).find(u => u.uid !== user.uid);
+          if (other) {
+            const status = other.online ? "Online" : "Last seen " + timeAgo(other.lastSeen);
+            document.getElementById("onlineStatus").textContent = status;
+          }
+        });
+
+        // Load messages
+        db.ref("messages").on("child_added", function(snapshot) {
+          const msgData = snapshot.val();
+          const msgDiv = document.createElement("div");
+          msgDiv.classList.add("message");
+          msgDiv.classList.add(msgData.uid === user.uid ? "sent" : "received");
+          msgDiv.innerHTML = `
+            ${msgData.message}
+            <div class="timestamp">
+              ${msgData.uid === user.uid ? "Seen by receiver" : ""}<br>
+              ${timeAgo(msgData.timestamp)}
+            </div>
+          `;
+          document.getElementById("messages").appendChild(msgDiv);
+          scrollToBottom();
+        });
+      }
+    });
+  </script>
+</body>
+</html>
