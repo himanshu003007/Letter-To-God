@@ -1,46 +1,60 @@
-<!DOCTYPE html>
-<html>
+<!DOCTYPE html><html>
 <head>
   <title>Chat</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #e5ddd5;
+      background: #ece5dd;
       margin: 0;
       padding: 0;
     }
-    #messages {
-      background: #fff;
+    .chat-box {
+      max-width: 600px;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    .messages {
+      flex: 1;
       padding: 10px;
-      height: 300px;
-      overflow-y: auto;
+      overflow-y: scroll;
       display: flex;
       flex-direction: column;
     }
     .message {
-      max-width: 70%;
-      padding: 10px;
-      margin: 5px;
+      padding: 8px 12px;
+      margin: 4px 0;
       border-radius: 10px;
-      word-wrap: break-word;
+      max-width: 70%;
     }
-    .sent {
+    .message.sent {
+      background: #dcf8c6;
       align-self: flex-end;
-      background-color: #dcf8c6;
     }
-    .received {
+    .message.received {
+      background: #fff;
       align-self: flex-start;
-      background-color: #ffffff;
     }
-    #messageInput {
+    .input-area {
+      display: flex;
       padding: 10px;
-      width: 70%;
-      border-radius: 20px;
-      border: 1px solid #ccc;
+      background: #f0f0f0;
     }
-    #sendButton {
+    .input-area input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      outline: none;
+    }
+    .input-area button {
+      margin-left: 10px;
       padding: 10px 20px;
-      background-color: #128c7e;
+      background: #25d366;
       color: white;
       border: none;
       border-radius: 20px;
@@ -49,71 +63,52 @@
   </style>
 </head>
 <body>
-  <h2>Group Chat</h2>
-  <div id="messages"></div>
-  <input type="text" id="messageInput" placeholder="Type your message" />
-  <button id="sendButton" onclick="sendMessage()">Send</button>
-
-  <!-- Firebase Scripts -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
-  <script>
+  <div class="chat-box">
+    <div class="messages" id="messages"></div>
+    <div class="input-area">
+      <input type="text" id="message-input" placeholder="Type a message...">
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>  <script>
     const firebaseConfig = {
-      apiKey: "AIzaSyBKlOPu9Z_0dO5hobDNTrbLhSr0K_KojZw",
+      apiKey: "AIzaSyBKlOPu9Z_OdO5hobNTrDLh5rOK_KojZvk",
       authDomain: "private-chats-9203c.firebaseapp.com",
-      databaseURL: "https://private-chats-9203c-default-rtdb.firebaseio.com",
       projectId: "private-chats-9203c",
       storageBucket: "private-chats-9203c.appspot.com",
       messagingSenderId: "421397155816",
-      appId: "1:421397155816:web:84b3cdc9218355c34a1e5d",
-      measurementId: "G-RN1N2XKNDV"
+      appId: "1:421397155816:web:84b3cdc9218355c34a1e5d"
     };
 
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-    let currentUserUid = null;
-
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        currentUserUid = user.uid;
-        localStorage.setItem("uid", currentUserUid);
-      } else {
-        currentUserUid = localStorage.getItem("uid");
-      }
-    });
+    const groupName = localStorage.getItem("joinedGroup") || "default";
 
     function sendMessage() {
-      const msg = document.getElementById("messageInput").value;
-      if (msg.trim() !== "" && currentUserUid) {
-        db.ref("messages").push({
-          message: msg,
-          uid: currentUserUid,
-          timestamp: Date.now()
+      const input = document.getElementById("message-input");
+      const text = input.value.trim();
+      if (!text) return;
+
+      db.collection("groups").doc(groupName).collection("messages").add({
+        text,
+        timestamp: new Date()
+      });
+      input.value = "";
+    }
+
+    db.collection("groups").doc(groupName).collection("messages")
+      .orderBy("timestamp")
+      .onSnapshot(snapshot => {
+        const messagesContainer = document.getElementById("messages");
+        messagesContainer.innerHTML = "";
+        snapshot.forEach(doc => {
+          const msg = doc.data();
+          const div = document.createElement("div");
+          div.classList.add("message", "received");
+          div.innerText = msg.text;
+          messagesContainer.appendChild(div);
         });
-        document.getElementById("messageInput").value = "";
-      } else {
-        alert("Login required or message is empty");
-      }
-    }
-
-    function scrollToBottom() {
-      const messagesDiv = document.getElementById("messages");
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    }
-
-    db.ref("messages").on("child_added", function(snapshot) {
-      const msgData = snapshot.val();
-      const msgDiv = document.createElement("div");
-      msgDiv.classList.add("message");
-      msgDiv.classList.add(msgData.uid === currentUserUid ? "sent" : "received");
-      msgDiv.textContent = msgData.message;
-      document.getElementById("messages").appendChild(msgDiv);
-      scrollToBottom();
-    });
-  </script>
-</body>
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      });
+  </script></body>
 </html>
