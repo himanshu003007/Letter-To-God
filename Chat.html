@@ -1,0 +1,59 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Group Chat</title>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f0f0f0; padding: 20px; }
+    #messages { background: white; padding: 10px; height: 300px; overflow-y: scroll; border: 1px solid #ccc; }
+    input, button { padding: 10px; margin-top: 10px; width: 80%; }
+    button { width: 18%; }
+  </style>
+</head>
+<body>
+  <h2>Welcome to Group Chat</h2>
+  <div id="messages"></div>
+  <input type="text" id="messageInput" placeholder="Type your message..." />
+  <button onclick="sendMessage()">Send</button>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKlOPu9Z_0dO5hobDNTrbLhSr0K_KojZw",
+      authDomain: "private-chats-9203c.firebaseapp.com",
+      databaseURL: "https://private-chats-9203c-default-rtdb.firebaseio.com",
+      projectId: "private-chats-9203c",
+      storageBucket: "private-chats-9203c.appspot.com",
+      messagingSenderId: "421397155816",
+      appId: "1:421397155816:web:84b3cdc9218355c34a1e5d",
+      measurementId: "G-RN1N2XKNDV"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function sendMessage() {
+      const msg = document.getElementById("messageInput").value;
+      if (msg.trim() !== "") {
+        db.ref("messages").push().set({
+          message: msg,
+          timestamp: Date.now()
+        });
+        document.getElementById("messageInput").value = "";
+      }
+    }
+
+    db.ref("messages").on("child_added", function(snapshot) {
+      const msgData = snapshot.val();
+      const msgDiv = document.createElement("div");
+      msgDiv.textContent = msgData.message;
+      document.getElementById("messages").appendChild(msgDiv);
+    });
+  </script>
+</body>
+</html>
