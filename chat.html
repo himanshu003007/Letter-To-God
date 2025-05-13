@@ -2,135 +2,106 @@
 <html>
 <head>
   <title>Group Chat</title>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #e5ddd5;
-      margin: 0;
-      padding: 0;
+      margin: 20px;
     }
-    .chat-container {
-      max-width: 600px;
-      margin: auto;
-      padding: 10px;
-    }
-    .message {
-      padding: 8px 12px;
-      margin: 6px;
-      border-radius: 15px;
-      max-width: 70%;
-      clear: both;
-      word-wrap: break-word;
-    }
-    .me {
-      background-color: #dcf8c6;
-      float: right;
-      text-align: right;
-    }
-    .other {
-      background-color: #f1f0f0;
-      float: left;
-      text-align: left;
-    }
-    #messages {
-      margin-bottom: 70px;
-      min-height: 400px;
-    }
-    .input-area {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      max-width: 600px;
-      background: #fff;
-      padding: 10px;
-      box-shadow: 0 -1px 5px rgba(0,0,0,0.1);
-      display: flex;
-    }
-    input {
-      flex: 1;
-      padding: 10px;
+    #chat-box {
       border: 1px solid #ccc;
-      border-radius: 20px;
-      outline: none;
+      height: 400px;
+      overflow-y: scroll;
+      padding: 10px;
+      background: #f5f5f5;
     }
-    button {
-      margin-left: 10px;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 20px;
-      background-color: #4caf50;
-      color: white;
-      cursor: pointer;
+    .my-message {
+      text-align: right;
+      background-color: #dcf8c6;
+      margin: 5px;
+      padding: 8px;
+      border-radius: 10px;
+    }
+    .other-message {
+      text-align: left;
+      background-color: #fff;
+      margin: 5px;
+      padding: 8px;
+      border-radius: 10px;
     }
   </style>
 </head>
 <body>
-  <div class="chat-container">
-    <div id="messages"></div>
-    <div class="input-area">
-      <input type="text" id="messageInput" placeholder="Type a message...">
-      <button onclick="sendMessage()">Send</button>
-    </div>
-  </div>
+  <h2>Group Chat</h2>
+  <div id="chat-box"></div>
+  <br>
+  <input type="text" id="message-input" placeholder="Type your message" style="width: 70%;">
+  <button onclick="sendMessage()">Send</button>
 
   <script>
     const firebaseConfig = {
-      apiKey: "AIzaSyBKlOPu9Z_OdO5hoNbTrDLhSr0K_KojzVk",
+      apiKey: "AIzaSyBKlOPu9Z_OdO5hobNTrDLh5rOK_KojZvk",
       authDomain: "private-chats-9203c.firebaseapp.com",
-      databaseURL: "https://private-chats-9203c-default-rtdb.firebaseio.com",
       projectId: "private-chats-9203c",
       storageBucket: "private-chats-9203c.appspot.com",
       messagingSenderId: "421397155816",
-      appId: "1:421397155816:web:84b3dc9218355c34a1e5d",
-      measurementId: "G-RNI1ZXKNDV"
+      appId: "1:421397155816:web:84b3cdc9218355c34a1e5d"
     };
 
-    // Initialize Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-    // Get user and group name from session
-    const group = sessionStorage.getItem("group");
-    const user = sessionStorage.getItem("user");
-
-    if (!group || !user) {
-      alert("User or Group not found. Redirecting...");
-      location.href = "Joingroup.html";
-    }
-
-    const messagesRef = db.ref("groups/" + group + "/messages");
-
-    // Display messages
-    messagesRef.on("child_added", snapshot => {
-      const msg = snapshot.val();
-      displayMessage(msg.name, msg.message);
+    firebase.auth().onAuthStateChanged(user => {
+      if (!user) {
+        window.location.href = "index.html"; // login page
+      } else {
+        loadMessages();
+      }
     });
 
-    // Send message function
     function sendMessage() {
-      const input = document.getElementById("messageInput");
-      const message = input.value.trim();
-      if (message === "") return;
+      const messageInput = document.getElementById("message-input");
+      const messageText = messageInput.value.trim();
+      if (messageText === "") return;
 
-      const newMessage = {
-        name: user,
-        message: message
-      };
+      const user = firebase.auth().currentUser;
+      const groupName = localStorage.getItem("joinedGroup");
 
-      messagesRef.push(newMessage);
-      input.value = "";
+      db.collection("messages").add({
+        text: messageText,
+        sender: user.displayName || user.email,
+        group: groupName,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(() => {
+        messageInput.value = "";
+      }).catch(error => {
+        alert("Message not sent: " + error.message);
+      });
     }
 
-    // Display message in chat box
-    function displayMessage(sender, message) {
-      const messagesDiv = document.getElementById("messages");
-      const div = document.createElement("div");
-      div.className = "message " + (sender === user ? "me" : "other");
-      div.innerHTML = `<strong>${sender}</strong><br>${message}`;
-      messagesDiv.appendChild(div);
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    function loadMessages() {
+      const groupName = localStorage.getItem("joinedGroup");
+      db.collection("messages")
+        .where("group", "==", groupName)
+        .orderBy("timestamp")
+        .onSnapshot(snapshot => {
+          const chatBox = document.getElementById("chat-box");
+          chatBox.innerHTML = "";
+          snapshot.forEach(doc => {
+            const message = doc.data();
+            const messageElement = document.createElement("div");
+            messageElement.textContent = `${message.sender}: ${message.text}`;
+            messageElement.className =
+              (firebase.auth().currentUser.displayName === message.sender ||
+              firebase.auth().currentUser.email === message.sender)
+              ? "my-message"
+              : "other-message";
+            chatBox.appendChild(messageElement);
+            chatBox.scrollTop = chatBox.scrollHeight;
+          });
+        });
     }
   </script>
 </body>
