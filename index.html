@@ -1,35 +1,79 @@
-<!DOCTYPE html>
-<html>
+<!DOCTYPE html><html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Group Page</title>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }h2, h3 {
+  text-align: center;
+  color: #333;
+}
+
+#login-section, #group-section {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  width: 90%;
+  max-width: 400px;
+  margin: 10px;
+}
+
+input[type="text"], input[type="password"] {
+  width: 100%;
+  padding: 10px;
+  margin: 5px 0 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  width: 100%;
+  font-size: 16px;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+  </style>
 </head>
 <body>
-  <h2>Welcome to Group App</h2>
-
-  <div id="login-section">
+  <h2>Welcome to Group App</h2>  <div id="login-section">
     <button onclick="signInWithGoogle()">Login with Google</button>
-  </div>
-
-  <div id="group-section" style="display:none;">
+  </div>  <div id="group-section" style="display:none;">
     <h3>Create Group</h3>
     <form id="create-group-form">
-      <input type="text" id="group-name" placeholder="Group Name" required><br><br>
-      <input type="password" id="group-password" placeholder="Group Password" required><br><br>
+      <input type="text" id="group-name" placeholder="Group Name" required>
+      <input type="password" id="group-password" placeholder="Group Password" required>
       <button type="submit">Create Group</button>
-    </form>
+    </form><h3>Join Group</h3>
+<form id="join-group-form">
+  <input type="text" id="join-group-name" placeholder="Group Name" required>
+  <input type="password" id="join-group-password" placeholder="Group Password" required>
+  <button type="submit">Join Group</button>
+</form>
 
-    <h3>Join Group</h3>
-    <form id="join-group-form">
-      <input type="text" id="join-group-name" placeholder="Group Name" required><br><br>
-      <input type="password" id="join-group-password" placeholder="Group Password" required><br><br>
-      <button type="submit">Join Group</button>
-    </form>
-  </div>
-
-  <script>
+  </div>  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBKlOPu9Z_OdO5hobNTrDLh5rOK_KojZvk",
       authDomain: "private-chats-9203c.firebaseapp.com",
@@ -59,6 +103,9 @@
       if (user) {
         document.getElementById("login-section").style.display = "none";
         document.getElementById("group-section").style.display = "block";
+      } else {
+        document.getElementById("login-section").style.display = "block";
+        document.getElementById("group-section").style.display = "none";
       }
     });
 
@@ -98,6 +145,5 @@
         alert("Error joining group: " + error.message);
       }
     });
-  </script>
-</body>
+  </script></body>
 </html>
