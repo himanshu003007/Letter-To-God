@@ -8,22 +8,25 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
   <style>
-    body {
-      font-family: Arial, sans-serif;
+    html, body {
+      height: 100%;
       margin: 0;
       padding: 0;
+      font-family: Arial, sans-serif;
       background: #f0f0f0;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      max-width: 100vw;
       overflow: hidden;
-    }#topBar {
+    }body {
+  display: flex;
+  flex-direction: column;
+}
+
+#topBar {
   background-color: #075e54;
   color: white;
   padding: 15px;
   font-weight: bold;
   text-align: center;
+  flex-shrink: 0;
 }
 
 #chatContainer {
@@ -41,7 +44,7 @@
   margin: 5px;
   word-wrap: break-word;
   white-space: pre-wrap;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .sent {
@@ -62,25 +65,27 @@
   background: #ffffff;
   border-top: 1px solid #ccc;
   display: flex;
+  flex-shrink: 0;
 }
 
 #messageInput {
   flex: 1;
-  padding: 10px;
+  padding: 14px;
   border: 1px solid #ccc;
-  border-radius: 20px;
+  border-radius: 25px;
   outline: none;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 #sendButton {
   margin-left: 10px;
-  padding: 10px 20px;
+  padding: 14px 24px;
   border: none;
   background-color: #25D366;
   color: white;
-  border-radius: 20px;
+  border-radius: 25px;
   cursor: pointer;
+  font-size: 16px;
 }
 
   </style>
