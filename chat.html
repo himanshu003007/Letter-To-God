@@ -1,132 +1,131 @@
-<!DOCTYPE html><html>
+<!DOCTYPE html>
+<html>
 <head>
-  <title>Chat</title>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <title>Group Chat</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #e5ddd5;
+      background: #e5ddd5;
       margin: 0;
       padding: 0;
     }
-    .chat-box {
-      padding: 10px;
+    .chat-container {
       max-width: 600px;
       margin: auto;
+      padding: 10px;
     }
     .message {
-      padding: 10px;
-      margin: 5px 0;
-      border-radius: 10px;
+      padding: 8px 12px;
+      margin: 6px;
+      border-radius: 15px;
       max-width: 70%;
       clear: both;
-      display: inline-block;
+      word-wrap: break-word;
     }
-    .own {
+    .me {
       background-color: #dcf8c6;
       float: right;
       text-align: right;
     }
     .other {
-      background-color: #fff;
+      background-color: #f1f0f0;
       float: left;
       text-align: left;
     }
-    #message-input {
-      width: 75%;
-      padding: 10px;
-      border-radius: 20px;
-      border: 1px solid #ccc;
-      outline: none;
-    }
-    #send-button {
-      padding: 10px 15px;
-      border: none;
-      border-radius: 20px;
-      background-color: #128c7e;
-      color: white;
-      cursor: pointer;
-    }
-    #chat-area {
-      max-height: 400px;
-      overflow-y: auto;
+    #messages {
       margin-bottom: 60px;
     }
-    .footer {
+    .input-area {
       position: fixed;
       bottom: 0;
       width: 100%;
-      background-color: #f0f0f0;
+      max-width: 600px;
+      background: #fff;
       padding: 10px;
-      text-align: center;
+      box-shadow: 0 -1px 5px rgba(0,0,0,0.1);
+      display: flex;
+    }
+    input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      outline: none;
+    }
+    button {
+      margin-left: 10px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 20px;
+      background-color: #4caf50;
+      color: white;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <div class="chat-box">
-    <h2>Group Chat</h2>
-    <div id="chat-area"></div>
-  </div>  <div class="footer">
-    <input type="text" id="message-input" placeholder="Type a message...">
-    <button id="send-button">Send</button>
-  </div>  <script>
+  <div class="chat-container">
+    <div id="messages"></div>
+    <div class="input-area">
+      <input type="text" id="messageInput" placeholder="Type a message...">
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script>
     const firebaseConfig = {
-      apiKey: "AIzaSyBKIOPu9Z_OdO5hobNTrDLh5rOK_KojZvk",
+      apiKey: "AIzaSyBKlOPu9Z_OdO5hoNbTrDLhSr0K_KojzVk",
       authDomain: "private-chats-9203c.firebaseapp.com",
+      databaseURL: "https://private-chats-9203c-default-rtdb.firebaseio.com",
       projectId: "private-chats-9203c",
       storageBucket: "private-chats-9203c.appspot.com",
       messagingSenderId: "421397155816",
-      appId: "1:421397155816:web:84b3cdc9218355c34a1e5d"
+      appId: "1:421397155816:web:84b3dc9218355c34a1e5d",
+      measurementId: "G-RNI1ZXKNDV"
     };
 
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+    const db = firebase.database();
 
-    let currentUser;
-    let currentGroup = localStorage.getItem("joinedGroup") || "test";
+    const group = sessionStorage.getItem("group");
+    const user = sessionStorage.getItem("user");
 
-    auth.onAuthStateChanged(user => {
-      if (!user) {
-        alert("Login required");
-        window.location.href = "index.html";
-      } else {
-        currentUser = user;
-        listenForMessages();
-      }
+    if (!group || !user) {
+      alert("User or Group not found. Redirecting...");
+      location.href = "Joingroup.html";
+    }
+
+    const messagesRef = db.ref("groups/" + group + "/messages");
+
+    messagesRef.on("child_added", snapshot => {
+      const msg = snapshot.val();
+      displayMessage(msg.name, msg.message);
     });
 
-    function listenForMessages() {
-      db.collection("groups").doc(currentGroup).collection("messages")
-        .orderBy("timestamp")
-        .onSnapshot(snapshot => {
-          const chatArea = document.getElementById("chat-area");
-          chatArea.innerHTML = "";
-          snapshot.forEach(doc => {
-            const msg = doc.data();
-            const div = document.createElement("div");
-            div.classList.add("message");
-            div.classList.add(msg.sender === currentUser.email ? "own" : "other");
-            div.innerText = msg.text;
-            chatArea.appendChild(div);
-          });
-          chatArea.scrollTop = chatArea.scrollHeight;
-        });
+    function sendMessage() {
+      const input = document.getElementById("messageInput");
+      const message = input.value.trim();
+      if (message === "") return;
+
+      const newMessage = {
+        name: user,
+        message: message
+      };
+
+      messagesRef.push(newMessage);
+      input.value = "";
     }
 
-    document.getElementById("send-button").onclick = () => {
-      const msg = document.getElementById("message-input").value;
-      if (!msg.trim()) return;
-
-      db.collection("groups").doc(currentGroup).collection("messages").add({
-        text: msg,
-        sender: currentUser.email,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      });
-
-      document.getElementById("message-input").value = "";
+    function displayMessage(sender, message) {
+      const messagesDiv = document.getElementById("messages");
+      const div = document.createElement("div");
+      div.className = "message " + (sender === user ? "me" : "other");
+      div.innerHTML = `<strong>${sender}</strong><br>${message}`;
+      messagesDiv.appendChild(div);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
-  </script></body>
+  </script>
+</body>
 </html>
