@@ -35,7 +35,8 @@
       text-align: left;
     }
     #messages {
-      margin-bottom: 60px;
+      margin-bottom: 70px;
+      min-height: 400px;
     }
     .input-area {
       position: fixed;
@@ -86,9 +87,11 @@
       measurementId: "G-RNI1ZXKNDV"
     };
 
-    firebase.initializeApp(firebaseConfig);
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    // Get user and group name from session
     const group = sessionStorage.getItem("group");
     const user = sessionStorage.getItem("user");
 
@@ -99,11 +102,13 @@
 
     const messagesRef = db.ref("groups/" + group + "/messages");
 
+    // Display messages
     messagesRef.on("child_added", snapshot => {
       const msg = snapshot.val();
       displayMessage(msg.name, msg.message);
     });
 
+    // Send message function
     function sendMessage() {
       const input = document.getElementById("messageInput");
       const message = input.value.trim();
@@ -118,6 +123,7 @@
       input.value = "";
     }
 
+    // Display message in chat box
     function displayMessage(sender, message) {
       const messagesDiv = document.getElementById("messages");
       const div = document.createElement("div");
