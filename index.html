@@ -88,16 +88,21 @@ button:hover {
     const db = firebase.firestore();
 
     function signInWithGoogle() {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider)
-        .then(() => {
-          document.getElementById("login-section").style.display = "none";
-          document.getElementById("group-section").style.display = "block";
-        })
-        .catch(error => {
-          alert("Login failed: " + error.message);
-        });
-    }
+  const provider = new firebase.auth.GoogleAuthProvider();
+
+  // Set session-based persistence (logout when tab/browser is closed)
+  auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
+    .then(() => {
+      return auth.signInWithPopup(provider);
+    })
+    .then(() => {
+      document.getElementById("login-section").style.display = "none";
+      document.getElementById("group-section").style.display = "block";
+    })
+    .catch(error => {
+      alert("Login failed: " + error.message);
+    });
+}
 
     auth.onAuthStateChanged(user => {
       if (user) {
