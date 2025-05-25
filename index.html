@@ -98,17 +98,27 @@ button:hover {
     const db = firebase.firestore();
 
     function signInWithGoogle() {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider)
-        .then(() => {
-          document.getElementById("login-section").style.display = "none";
-          document.getElementById("group-section").style.display = "block";
-        })
-        .catch(error => {
-          alert("Login failed: " + error.message);
-        });
-    }
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider)
+    .then(result => {
+      const user = result.user;
 
+      // Gmail ID Firestore માં સ્ટોર કરો
+      if (user && user.email) {
+        db.collection("users").doc(user.uid).set({
+          email: user.email,
+          name: user.displayName,
+          lastLogin: new Date()
+        }, { merge: true });
+      }
+
+      document.getElementById("login-section").style.display = "none";
+      document.getElementById("group-section").style.display = "block";
+    })
+    .catch(error => {
+      alert("Login failed: " + error.message);
+    });
+}
     auth.onAuthStateChanged(user => {
       if (user) {
         document.getElementById("login-section").style.display = "none";
